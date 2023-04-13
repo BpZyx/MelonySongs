@@ -1,65 +1,104 @@
-// Load songs from CSV file
-let songs;
-const xhr = new XMLHttpRequest();
-xhr.onreadystatechange = function () {
-  if (xhr.readyState === XMLHttpRequest.DONE) {
-    if (xhr.status === 200) {
-      // Parse CSV data
-      const csvData = xhr.responseText;
-      songs = Papa.parse(csvData, { header: true }).data;
-
-      // Filter songs by search term
-      function filterSongs(searchTerm) {
-        if (!searchTerm) {
-          return songs;
-        }
-        const term = searchTerm.toLowerCase();
-        return songs.filter(song =>
-          song.title.toLowerCase().includes(term) ||
-          song.artist.toLowerCase().includes(term) ||
-          song.date.toLowerCase().includes(term)
-        );
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>My Favorite Songs</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
       }
+      th, td {
+        text-align: left;
+        padding: 8px;
+      }
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      #search-box {
+        padding: 5px;
+        margin-bottom: 10px;
+        width: 300px;
+      }
+      #clear-search-btn {
+        padding: 5px;
+        margin-left: 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>My Favorite Songs</h1>
+    <input type="text" id="search-box" placeholder="Search...">
+    <button id="clear-search-btn">Clear Search</button>
+    <table id="songs-table">
+      <thead>
+        <tr>
+          <th>Song Name</th>
+          <th>Artist</th>
+          <th>Release Date</th>
+          <th>YouTube Link</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <script>
+      const songsTable = document.querySelector('#songs-table tbody');
+      const searchBox = document.querySelector('#search-box');
+      const clearSearchBtn = document.querySelector('#clear-search-btn');
+      
+      const songsUrl = 'songs.csv';
 
-      // Render songs
-      function renderSongs(searchTerm) {
-        const filteredSongs = filterSongs(searchTerm);
-        const songList = document.getElementById("song-list");
-        songList.innerHTML = "";
-        if (filteredSongs.length > 0) {
-          filteredSongs.forEach(song => {
-            const songItem = document.createElement("li");
-            songItem.innerHTML = `
-              <div class="song-item">
-                <div class="song-title">${song.title}</div>
-                <div class="song-artist">${song.artist}</div>
-                <div class="song-date">${song.date}</div>
-                <div class="song-link"><a href="${song.youtube_link}" target="_blank">Listen</a></div>
-              </div>
-            `;
-            songList.appendChild(songItem);
+      fetch(songsUrl)
+        .then(response => response.text())
+        .then(data => {
+          const rows = data.split('\n');
+          const headers = rows[0].split(',');
+          const songs = [];
+
+          for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].split(',');
+            if (cells.length === headers.length) {
+              const song = {};
+              for (let j = 0; j < headers.length; j++) {
+                song[headers[j]] = cells[j].trim();
+              }
+              songs.push(song);
+            }
+          }
+
+          renderSongs(songs);
+          searchBox.addEventListener('input', () => filterSongs(songs));
+          clearSearchBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            renderSongs(songs);
           });
-        } else {
-          const noResults = document.createElement("li");
-          noResults.innerText = "No results found.";
-          songList.appendChild(noResults);
+        });
+
+      function renderSongs(songs) {
+        songsTable.innerHTML = '';
+        for (const song of songs) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${song['Song Name']}</td>
+            <td>${song['Artist']}</td>
+            <td>${song['Release Date']}</td>
+            <td><a href="${song['YouTube Link']}" target="_blank">Watch on YouTube</a></td>
+          `;
+          songsTable.appendChild(row);
         }
       }
 
-      // Handle search form submit
-      const searchForm = document.getElementById("search-form");
-      searchForm.addEventListener("submit", event => {
-        event.preventDefault();
-        const searchTerm = document.getElementById("search-term").value;
-        renderSongs(searchTerm);
-      });
-
-      // Render all songs on page load
-      renderSongs("");
-    } else {
-      console.log("Failed to load songs CSV file.");
-    }
-  }
-};
-xhr.open("GET", "songs.csv");
-xhr.send();
+      function filterSongs(songs) {
+        const searchText = searchBox.value.trim().toLowerCase();
+        const filteredSongs = songs.filter(song => {
+          return song['Song Name'].toLowerCase().includes(searchText) ||
+                song['Artist'].toLowerCase().includes(searchText) ||
+                song['Release Date'].toLowerCase().includes(searchText);
+        });
+        renderSongs(filteredSongs);
+      }
+    </script>
+  </body>
+</html>
