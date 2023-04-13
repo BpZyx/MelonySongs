@@ -1,72 +1,65 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="UTF-8">
-	<title>Song List</title>
-	<style>
-		table {
-			border-collapse: collapse;
-			width: 100%;
-			font-size: 16px;
-		}
+// Load songs from CSV file
+let songs;
+const xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function () {
+  if (xhr.readyState === XMLHttpRequest.DONE) {
+    if (xhr.status === 200) {
+      // Parse CSV data
+      const csvData = xhr.responseText;
+      songs = Papa.parse(csvData, { header: true }).data;
 
-		th, td {
-			text-align: left;
-			padding: 8px;
-			border: 1px solid #ddd;
-		}
+      // Filter songs by search term
+      function filterSongs(searchTerm) {
+        if (!searchTerm) {
+          return songs;
+        }
+        const term = searchTerm.toLowerCase();
+        return songs.filter(song =>
+          song.title.toLowerCase().includes(term) ||
+          song.artist.toLowerCase().includes(term) ||
+          song.date.toLowerCase().includes(term)
+        );
+      }
 
-		tr:nth-child(even) {
-			background-color: #f2f2f2;
-		}
+      // Render songs
+      function renderSongs(searchTerm) {
+        const filteredSongs = filterSongs(searchTerm);
+        const songList = document.getElementById("song-list");
+        songList.innerHTML = "";
+        if (filteredSongs.length > 0) {
+          filteredSongs.forEach(song => {
+            const songItem = document.createElement("li");
+            songItem.innerHTML = `
+              <div class="song-item">
+                <div class="song-title">${song.title}</div>
+                <div class="song-artist">${song.artist}</div>
+                <div class="song-date">${song.date}</div>
+                <div class="song-link"><a href="${song.youtube_link}" target="_blank">Listen</a></div>
+              </div>
+            `;
+            songList.appendChild(songItem);
+          });
+        } else {
+          const noResults = document.createElement("li");
+          noResults.innerText = "No results found.";
+          songList.appendChild(noResults);
+        }
+      }
 
-		th {
-			background-color: #4CAF50;
-			color: white;
-		}
+      // Handle search form submit
+      const searchForm = document.getElementById("search-form");
+      searchForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const searchTerm = document.getElementById("search-term").value;
+        renderSongs(searchTerm);
+      });
 
-		input[type=text] {
-			padding: 6px;
-			border: 1px solid #ccc;
-			border-radius: 4px;
-			box-sizing: border-box;
-		}
-
-		button {
-			background-color: #4CAF50;
-			color: white;
-			padding: 6px 10px;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-		}
-
-		button:hover {
-			background-color: #45a049;
-		}
-
-		.clear-btn {
-			background-color: #f44336;
-		}
-	</style>
-</head>
-<body>
-	<h1>Song List</h1>
-	<input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for song names...">
-	<button onclick="clearSearch()">Clear</button>
-	<table id="songTable">
-		<thead>
-			<tr>
-				<th>Song Name</th>
-				<th>Artist</th>
-				<th>Release Date</th>
-				<th>YouTube Link</th>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-
-	<script src="index.js"></script>
-</body>
-</html>
+      // Render all songs on page load
+      renderSongs("");
+    } else {
+      console.log("Failed to load songs CSV file.");
+    }
+  }
+};
+xhr.open("GET", "songs.csv");
+xhr.send();
