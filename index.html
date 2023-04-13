@@ -47,10 +47,8 @@
       const songsTable = document.querySelector('#songs-table tbody');
       const searchBox = document.querySelector('#search-box');
       const clearSearchBtn = document.querySelector('#clear-search-btn');
-      
-      const songsUrl = 'songs.csv';
 
-      fetch(songsUrl)
+      fetch('songs.csv')
         .then(response => response.text())
         .then(data => {
           const rows = data.split('\n');
@@ -62,7 +60,7 @@
             if (cells.length === headers.length) {
               const song = {};
               for (let j = 0; j < headers.length; j++) {
-                song[headers[j]] = cells[j].trim();
+                song[headers[j].trim()] = cells[j].trim();
               }
               songs.push(song);
             }
@@ -84,7 +82,7 @@
             <td>${song['Song Name']}</td>
             <td>${song['Artist']}</td>
             <td>${song['Release Date']}</td>
-            <td><a href="${song['YouTube Link']}" a></td>
+            <td><a href="${song['YouTube Link']}" target="_blank">Watch on YouTube</a></td>
           `;
           songsTable.appendChild(row);
         }
