@@ -1,62 +1,65 @@
-// Load songs data from CSV file
-const loadSongs = async () => {
-  try {
-    const response = await fetch('songs.csv');
-    const data = await response.text();
-    return Papa.parse(data, { header: true }).data;
-  } catch (error) {
-    console.error(error);
+// Load songs from CSV file
+let songs;
+const xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function () {
+  if (xhr.readyState === XMLHttpRequest.DONE) {
+    if (xhr.status === 200) {
+      // Parse CSV data
+      const csvData = xhr.responseText;
+      songs = Papa.parse(csvData, { header: true }).data;
+
+      // Filter songs by search term
+      function filterSongs(searchTerm) {
+        if (!searchTerm) {
+          return songs;
+        }
+        const term = searchTerm.toLowerCase();
+        return songs.filter(song =>
+          song.title.toLowerCase().includes(term) ||
+          song.artist.toLowerCase().includes(term) ||
+          song.date.toLowerCase().includes(term)
+        );
+      }
+
+      // Render songs
+      function renderSongs(searchTerm) {
+        const filteredSongs = filterSongs(searchTerm);
+        const songList = document.getElementById("song-list");
+        songList.innerHTML = "";
+        if (filteredSongs.length > 0) {
+          filteredSongs.forEach(song => {
+            const songItem = document.createElement("li");
+            songItem.innerHTML = `
+              <div class="song-item">
+                <div class="song-title">${song.title}</div>
+                <div class="song-artist">${song.artist}</div>
+                <div class="song-date">${song.date}</div>
+                <div class="song-link"><a href="${song.youtube_link}" target="_blank">Listen</a></div>
+              </div>
+            `;
+            songList.appendChild(songItem);
+          });
+        } else {
+          const noResults = document.createElement("li");
+          noResults.innerText = "No results found.";
+          songList.appendChild(noResults);
+        }
+      }
+
+      // Handle search form submit
+      const searchForm = document.getElementById("search-form");
+      searchForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const searchTerm = document.getElementById("search-term").value;
+        renderSongs(searchTerm);
+      });
+
+      // Render all songs on page load
+      renderSongs("");
+    } else {
+      console.log("Failed to load songs CSV file.");
+    }
   }
 };
-
-// Render songs list
-const renderSongs = (songs) => {
-  const tableBody = document.querySelector('#songs-table tbody');
-  tableBody.innerHTML = '';
-
-  songs.forEach((song) => {
-    const row = document.createElement('tr');
-
-    const nameCell = document.createElement('td');
-    nameCell.textContent = song['Song Name'];
-    row.appendChild(nameCell);
-
-    const artistCell = document.createElement('td');
-    artistCell.textContent = song['Artist'];
-    row.appendChild(artistCell);
-
-    const dateCell = document.createElement('td');
-    dateCell.textContent = song['Release Date'];
-    row.appendChild(dateCell);
-
-    const linkCell = document.createElement('td');
-    const link = document.createElement('a');
-    link.textContent = 'Play';
-    link.href = song['YouTube Link'];
-    link.target = '_blank';
-    linkCell.appendChild(link);
-    row.appendChild(linkCell);
-
-    tableBody.appendChild(row);
-  });
-};
-
-// Handle search input
-const handleSearch = (event, songs) => {
-  const searchText = event.target.value.toLowerCase();
-  const filteredSongs = songs.filter(
-    (song) =>
-      song['Song Name'].toLowerCase().includes(searchText) ||
-      song['Artist'].toLowerCase().includes(searchText)
-  );
-  renderSongs(filteredSongs);
-};
-
-// Load and render songs list
-window.addEventListener('DOMContentLoaded', async () => {
-  const songs = await loadSongs();
-  renderSongs(songs);
-
-  const searchInput = document.querySelector('#search-input');
-  searchInput.addEventListener('input', (event) => handleSearch(event, songs));
-});
+xhr.open("GET", "songs.csv");
+xhr.send();
