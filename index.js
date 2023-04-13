@@ -1,98 +1,72 @@
-// Load the songs from the CSV file
-function loadSongs() {
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", "songs.csv");
-  xhr.onload = () => {
-    const csvData = xhr.responseText;
-    const songs = parseCSV(csvData);
-    displaySongs(songs);
-  };
-  xhr.send();
-}
+const tableBody = document.querySelector('#table-body');
+const searchBox = document.querySelector('#search-box');
+const clearBtn = document.querySelector('#clear-btn');
+let data = [];
 
-// Parse CSV data into an array of objects
-function parseCSV(csvData) {
-  const lines = csvData.split("\n");
-  const headers = lines[0].split(",");
-  const songs = [];
-  for (let i = 1; i < lines.length; i++) {
-    const songData = lines[i].split(",");
-    const song = {};
-    for (let j = 0; j < headers.length; j++) {
-      song[headers[j]] = songData[j];
-    }
-    songs.push(song);
-  }
-  return songs;
-}
-
-// Display the list of songs in the HTML table
-function displaySongs(songs) {
-  const table = document.getElementById("song-list");
-  table.innerHTML = "";
-  for (let i = 0; i < songs.length; i++) {
-    const song = songs[i];
-    const row = table.insertRow();
-    const nameCell = row.insertCell();
-    const artistCell = row.insertCell();
-    const dateCell = row.insertCell();
-    const linkCell = row.insertCell();
-    nameCell.textContent = song["Song Name"];
-    artistCell.textContent = song["Artist"];
-    dateCell.textContent = formatDate(song["Release Date"]);
-    const link = document.createElement("a");
-    link.href = song["YouTube Link"];
-    link.target = "_blank";
-    link.textContent = "Play";
-    linkCell.appendChild(link);
-  }
-}
-
-// Format the date in the "DD MMM YYYY" format
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  const options = { day: "numeric", month: "short", year: "numeric" };
-  return date.toLocaleDateString("en-US", options).replace(/,/g, "");
-}
-
-// Search for songs that match the search term
-function searchSongs() {
-  const searchTerm = document.getElementById("search-input").value.toLowerCase();
-  const table = document.getElementById("song-list");
-  const rows = table.getElementsByTagName("tr");
-  for (let i = 0; i < rows.length; i++) {
-    const nameCell = rows[i].getElementsByTagName("td")[0];
-    const artistCell = rows[i].getElementsByTagName("td")[1];
-    if (nameCell || artistCell) {
-      const name = nameCell.textContent.toLowerCase();
-      const artist = artistCell.textContent.toLowerCase();
-      if (name.includes(searchTerm) || artist.includes(searchTerm)) {
-        rows[i].style.display = "";
-      } else {
-        rows[i].style.display = "none";
+// Load data from CSV file
+fetch('songs.csv')
+  .then(response => response.text())
+  .then(text => {
+    const rows = text.split('\n');
+    rows.forEach((row, index) => {
+      if (index !== 0) {
+        const columns = row.split(',');
+        data.push({
+          name: columns[0],
+          artist: columns[1],
+          date: columns[2],
+          link: columns[3]
+        });
       }
-    }
-  }
+    });
+    displayData(data);
+  });
+
+// Display data in table
+function displayData(data) {
+  tableBody.innerHTML = '';
+  data.forEach(song => {
+    const row = document.createElement('tr');
+    const nameCol = document.createElement('td');
+    const artistCol = document.createElement('td');
+    const dateCol = document.createElement('td');
+    const linkCol = document.createElement('td');
+    const link = document.createElement('a');
+    
+    nameCol.textContent = song.name;
+    artistCol.textContent = song.artist;
+    dateCol.textContent = song.date;
+    link.textContent = 'Listen';
+    link.href = song.link;
+    link.target = '_blank';
+    linkCol.appendChild(link);
+
+    row.appendChild(nameCol);
+    row.appendChild(artistCol);
+    row.appendChild(dateCol);
+    row.appendChild(linkCol);
+    tableBody.appendChild(row);
+  });
 }
 
-// Clear the search input and display all songs
+// Filter table based on search query
+function searchTable(query) {
+  const filteredData = data.filter(song => {
+    return song.name.toLowerCase().includes(query.toLowerCase()) ||
+           song.artist.toLowerCase().includes(query.toLowerCase());
+  });
+  displayData(filteredData);
+}
+
+// Clear search box and display all data
 function clearSearch() {
-  const searchTerm = document.getElementById("search-input").value;
-  if (searchTerm) {
-    document.getElementById("search-input").value = "";
-    displaySongs(songs);
-  }
+  searchBox.value = '';
+  displayData(data);
 }
 
-// Load the songs when the page is loaded
-window.addEventListener("load", () => {
-  loadSongs();
-
-  // Add event listener for the search button
-  const searchBtn = document.getElementById("search-btn");
-  searchBtn.addEventListener("click", searchSongs);
-
-  // Add event listener for the clear button
-  const clearBtn = document.getElementById("clear-btn");
-  clearBtn.addEventListener("click", clearSearch);
+// Event listeners
+searchBox.addEventListener('input', e => {
+  searchTable(e.target.value);
 });
+
+clearBtn.addEventListener('click', clearSearch);
