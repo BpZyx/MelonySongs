@@ -47,7 +47,7 @@
       const songsTable = document.querySelector('#songs-table tbody');
       const searchBox = document.querySelector('#search-box');
       const clearSearchBtn = document.querySelector('#clear-search-btn');
-      
+
       const songsUrl = 'songs.csv';
 
       fetch(songsUrl)
@@ -84,7 +84,7 @@
             <td>${song['Song Name']}</td>
             <td>${song['Artist']}</td>
             <td>${song['Release Date']}</td>
-            <td>${song['YouTube Link']}</td>
+            <td><a href="${song['YouTube Link']}" target="_blank">Watch on YouTube</a></td>
           `;
           songsTable.appendChild(row);
         }
