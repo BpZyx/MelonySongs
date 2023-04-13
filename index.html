@@ -1,15 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Favorite Songs</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <h1>รายชื่อเพลงที่ชอบ</h1>
-    <input type="text" id="searchInput" onkeyup="search()" placeholder="ค้นหาชื่อเพลง...">
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>My Song List</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.0/papaparse.min.js"></script>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      
+      th, td {
+        text-align: left;
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+      }
+      
+      th {
+        background-color: #f2f2f2;
+      }
+      
+      input[type=text] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+      }
+      
+      button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      
+      button:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body onload="loadTable()">
+    <h1>My Song List</h1>
+    
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search...">
+    <button type="button" onclick="clearSearch()">Clear</button>
+    
     <table id="songTable">
       <thead>
         <tr>
@@ -22,8 +62,48 @@
       <tbody>
       </tbody>
     </table>
-    <button type="button" onclick="clearSearch()">ล้างการค้นหา</button>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+    
+    <script>
+      var data = [];
+      
+      function loadTable() {
+        Papa.parse("path/to/your/csv/file.csv", {
+          header: true,
+          download: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            data = results.data;
+            renderTable(data);
+          }
+        });
+      }
+      
+      function renderTable(data) {
+        var tableBody = document.querySelector("#songTable tbody");
+        
+        // Clear table
+        tableBody.innerHTML = "";
+        
+        // Render table rows
+        for (var i = 0; i < data.length; i++) {
+          var row = tableBody.insertRow();
+          row.insertCell().textContent = data[i]["ชื่อเพลง"];
+          row.insertCell().textContent = data[i]["ศิลปิน"];
+          row.insertCell().textContent = data[i]["วันที่ร้อง"];
+          var linkCell = row.insertCell();
+          var link = document.createElement("a");
+          link.href = data[i]["กดเพื่อฟัง"];
+          link.textContent = "เล่นเพลง";
+          link.target = "_blank";
+          linkCell.appendChild(link);
+        }
+      }
+      
+      function searchTable() {
+        var input = document.querySelector("#searchInput");
+        var filter = input.value.toUpperCase();
+        var table = document.querySelector("#songTable");
+        var rows = table.querySelectorAll("tr");
+        
+        for (var i = 0; i < rows.length; i++) {
+          var cells = rows[i
