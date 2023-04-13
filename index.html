@@ -2,29 +2,71 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>My Favorite Songs</title>
-	<link rel="stylesheet" href="style.css">
+	<title>Song List</title>
+	<style>
+		table {
+			border-collapse: collapse;
+			width: 100%;
+			font-size: 16px;
+		}
+
+		th, td {
+			text-align: left;
+			padding: 8px;
+			border: 1px solid #ddd;
+		}
+
+		tr:nth-child(even) {
+			background-color: #f2f2f2;
+		}
+
+		th {
+			background-color: #4CAF50;
+			color: white;
+		}
+
+		input[type=text] {
+			padding: 6px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			box-sizing: border-box;
+		}
+
+		button {
+			background-color: #4CAF50;
+			color: white;
+			padding: 6px 10px;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			background-color: #45a049;
+		}
+
+		.clear-btn {
+			background-color: #f44336;
+		}
+	</style>
 </head>
 <body>
-	<header>
-		<h1>My Favorite Songs</h1>
-		<input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for song...">
-		<button type="button" onclick="clearSearch()">Clear search</button>
-	</header>
-	<main>
-		<table id="songTable">
-			<thead>
-				<tr>
-					<th>Song Name</th>
-					<th>Artist</th>
-					<th>Release Date</th>
-					<th>YouTube Link</th>
-				</tr>
-			</thead>
-			<tbody id="songList">
-			</tbody>
-		</table>
-	</main>
+	<h1>Song List</h1>
+	<input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for song names...">
+	<button onclick="clearSearch()">Clear</button>
+	<table id="songTable">
+		<thead>
+			<tr>
+				<th>Song Name</th>
+				<th>Artist</th>
+				<th>Release Date</th>
+				<th>YouTube Link</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+
 	<script src="index.js"></script>
 </body>
 </html>
