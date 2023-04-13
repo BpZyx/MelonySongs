@@ -1,72 +1,62 @@
-const tableBody = document.querySelector('#table-body');
-const searchBox = document.querySelector('#search-box');
-const clearBtn = document.querySelector('#clear-btn');
-let data = [];
+// Load songs data from CSV file
+const loadSongs = async () => {
+  try {
+    const response = await fetch('songs.csv');
+    const data = await response.text();
+    return Papa.parse(data, { header: true }).data;
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-// Load data from CSV file
-fetch('songs.csv')
-  .then(response => response.text())
-  .then(text => {
-    const rows = text.split('\n');
-    rows.forEach((row, index) => {
-      if (index !== 0) {
-        const columns = row.split(',');
-        data.push({
-          name: columns[0],
-          artist: columns[1],
-          date: columns[2],
-          link: columns[3]
-        });
-      }
-    });
-    displayData(data);
-  });
-
-// Display data in table
-function displayData(data) {
+// Render songs list
+const renderSongs = (songs) => {
+  const tableBody = document.querySelector('#songs-table tbody');
   tableBody.innerHTML = '';
-  data.forEach(song => {
-    const row = document.createElement('tr');
-    const nameCol = document.createElement('td');
-    const artistCol = document.createElement('td');
-    const dateCol = document.createElement('td');
-    const linkCol = document.createElement('td');
-    const link = document.createElement('a');
-    
-    nameCol.textContent = song.name;
-    artistCol.textContent = song.artist;
-    dateCol.textContent = song.date;
-    link.textContent = 'Listen';
-    link.href = song.link;
-    link.target = '_blank';
-    linkCol.appendChild(link);
 
-    row.appendChild(nameCol);
-    row.appendChild(artistCol);
-    row.appendChild(dateCol);
-    row.appendChild(linkCol);
+  songs.forEach((song) => {
+    const row = document.createElement('tr');
+
+    const nameCell = document.createElement('td');
+    nameCell.textContent = song['Song Name'];
+    row.appendChild(nameCell);
+
+    const artistCell = document.createElement('td');
+    artistCell.textContent = song['Artist'];
+    row.appendChild(artistCell);
+
+    const dateCell = document.createElement('td');
+    dateCell.textContent = song['Release Date'];
+    row.appendChild(dateCell);
+
+    const linkCell = document.createElement('td');
+    const link = document.createElement('a');
+    link.textContent = 'Play';
+    link.href = song['YouTube Link'];
+    link.target = '_blank';
+    linkCell.appendChild(link);
+    row.appendChild(linkCell);
+
     tableBody.appendChild(row);
   });
-}
+};
 
-// Filter table based on search query
-function searchTable(query) {
-  const filteredData = data.filter(song => {
-    return song.name.toLowerCase().includes(query.toLowerCase()) ||
-           song.artist.toLowerCase().includes(query.toLowerCase());
-  });
-  displayData(filteredData);
-}
+// Handle search input
+const handleSearch = (event, songs) => {
+  const searchText = event.target.value.toLowerCase();
+  const filteredSongs = songs.filter(
+    (song) =>
+      song['Song Name'].toLowerCase().includes(searchText) ||
+      song['Artist'].toLowerCase().includes(searchText)
+  );
+  renderSongs(filteredSongs);
+};
 
-// Clear search box and display all data
-function clearSearch() {
-  searchBox.value = '';
-  displayData(data);
-}
+// Load and render songs list
+window.addEventListener('DOMContentLoaded', async () => {
+  const songs = await loadSongs();
+  renderSongs(songs);
 
-// Event listeners
-searchBox.addEventListener('input', e => {
-  searchTable(e.target.value);
+  const searchInput = document.querySelector('#search-input');
+  searchInput.addEventListener('input', (event) => handleSearch(event, songs));
 });
-
-clearBtn.addEventListener('click', clearSearch);
