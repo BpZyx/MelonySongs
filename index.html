@@ -1,98 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Song List</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <title>My Favorite Songs</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th, td {
+        text-align: left;
+        padding: 8px;
+      }
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+      #search-box {
+        padding: 5px;
+        margin-bottom: 10px;
+        width: 300px;
+      }
+      #clear-search-btn {
+        padding: 5px;
+        margin-left: 10px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <div>
-      <input type="text" id="searchBox" onkeyup="searchTable()" placeholder="Search for song name or artist" />
-      <button onclick="clearSearch()">Clear Search</button>
-    </div>
-    <table id="songTable">
+    <h1>My Favorite Songs</h1>
+    <input type="text" id="search-box" placeholder="Search...">
+    <button id="clear-search-btn">Clear Search</button>
+    <table id="songs-table">
       <thead>
         <tr>
           <th>Song Name</th>
           <th>Artist</th>
+          <th>Release Date</th>
           <th>YouTube Link</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+      </tbody>
     </table>
-
     <script>
-      function loadTable() {
-        let table = document.getElementById("songTable");
-        let tbody = table.getElementsByTagName("tbody")[0];
-        let xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function () {
-          if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 200) {
-              let data = xhr.responseText.split("\n");
-              for (let i = 1; i < data.length; i++) {
-                let row = data[i].split(",");
-                if (row.length === 3) {
-                  let tr = document.createElement("tr");
-                  let td1 = document.createElement("td");
-                  let td2 = document.createElement("td");
-                  let td3 = document.createElement("td");
-                  let link = document.createElement("a");
-                  link.href = row[2];
-                  link.target = "_blank";
-                  link.textContent = "Watch Now";
-                  td1.textContent = row[0];
-                  td2.textContent = row[1];
-                  td3.appendChild(link);
-                  tr.appendChild(td1);
-                  tr.appendChild(td2);
-                  tr.appendChild(td3);
-                  tbody.appendChild(tr);
-                }
-              }
-            } else {
-              console.error(xhr.statusText);
-            }
-          }
-        };
-        xhr.open("GET", "songs.csv");
-        xhr.send();
-      }
+      const songsTable = document.querySelector('#songs-table tbody');
+      const searchBox = document.querySelector('#search-box');
+      const clearSearchBtn = document.querySelector('#clear-search-btn');
+      
+      const songsUrl = 'songs.csv';
 
-      function searchTable() {
-        let input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchBox");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("songTable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-          td = tr[i].getElementsByTagName("td");
-          for (let j = 0; j < td.length; j++) {
-            let cell = td[j];
-            if (cell) {
-              txtValue = cell.textContent || cell.innerText;
-              if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-                break;
-              } else {
-                tr[i].style.display = "none";
+      fetch(songsUrl)
+        .then(response => response.text())
+        .then(data => {
+          const rows = data.split('\n');
+          const headers = rows[0].split(',');
+          const songs = [];
+
+          for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].split(',');
+            if (cells.length === headers.length) {
+              const song = {};
+              for (let j = 0; j < headers.length; j++) {
+                song[headers[j]] = cells[j].trim();
               }
+              songs.push(song);
             }
           }
+
+          renderSongs(songs);
+          searchBox.addEventListener('input', () => filterSongs(songs));
+          clearSearchBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            renderSongs(songs);
+          });
+        });
+
+      function renderSongs(songs) {
+        songsTable.innerHTML = '';
+        for (const song of songs) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${song['Song Name']}</td>
+            <td>${song['Artist']}</td>
+            <td>${song['Release Date']}</td>
+            <td><a href="${song['YouTube Link']}" target="_blank">Watch on YouTube</a></td>
+          `;
+          songsTable.appendChild(row);
         }
       }
 
-      function clearSearch() {
-        document.getElementById("searchBox").value = "";
-        let table = document.getElementById("songTable");
-        let tr = table.getElementsByTagName("tr");
-        for (let i = 0; i < tr.length; i++) {
-          tr[i].style.display = "";
-        }
+      function filterSongs(songs) {
+        const searchText = searchBox.value.trim().toLowerCase();
+        const filteredSongs = songs.filter(song => {
+          return song['Song Name'].toLowerCase().includes(searchText) ||
+                song['Artist'].toLowerCase().includes(searchText) ||
+                song['Release Date'].toLowerCase().includes(searchText);
+        });
+        renderSongs(filteredSongs);
       }
-
-      loadTable();
     </script>
   </body>
 </html>
-
