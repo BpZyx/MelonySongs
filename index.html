@@ -1,23 +1,91 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>My Favorite Songs</title>
-</head>
-<body>
-  <h1>My Favorite Songs</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Song Name</th>
-        <th>Artist</th>
-        <th>Release Date</th>
-        <th>YouTube Link</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <script src="script.js"></script>
-</body>
+  <head>
+    <title>My Favorite Songs</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h1>My Favorite Songs</h1>
+    <input type="text" id="search-box" placeholder="Search...">
+    <button id="clear-button">Clear</button>
+    <table id="song-table">
+      <thead>
+        <tr>
+          <th>Song Name</th>
+          <th>Artist</th>
+          <th>Release Date</th>
+          <th>YouTube Link</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <script>
+      const songTable = document.querySelector('#song-table');
+      const searchBox = document.querySelector('#search-box');
+      const clearButton = document.querySelector('#clear-button');
+      const songs = [];
+
+      fetch('songs.csv')
+        .then(response => response.text())
+        .then(data => {
+          const rows = data.split('\n');
+          rows.shift(); // Remove header row
+          rows.forEach(row => {
+            const columns = row.split(',');
+            const song = {
+              name: columns[0],
+              artist: columns[1],
+              date: columns[2],
+              youtube: columns[3],
+            };
+            songs.push(song);
+          });
+          renderTable(songs);
+        });
+
+      function renderTable(songs) {
+        const tbody = songTable.querySelector('tbody');
+        tbody.innerHTML = '';
+        songs.forEach(song => {
+          const row = document.createElement('tr');
+          const nameCell = document.createElement('td');
+          nameCell.textContent = song.name;
+          row.appendChild(nameCell);
+          const artistCell = document.createElement('td');
+          artistCell.textContent = song.artist;
+          row.appendChild(artistCell);
+          const dateCell = document.createElement('td');
+          dateCell.textContent = song.date;
+          row.appendChild(dateCell);
+          const youtubeCell = document.createElement('td');
+          const youtubeLink = document.createElement('a');
+          youtubeLink.href = song.youtube;
+          youtubeLink.textContent = 'Watch now';
+          youtubeCell.appendChild(youtubeLink);
+          row.appendChild(youtubeCell);
+          tbody.appendChild(row);
+        });
+      }
+
+      function filterTable() {
+        const searchText = searchBox.value.toLowerCase();
+        const filteredSongs = songs.filter(song => {
+          return song.name.toLowerCase().includes(searchText) ||
+                 song.artist.toLowerCase().includes(searchText);
+        });
+        renderTable(filteredSongs);
+      }
+
+      function clearSearchBox() {
+        searchBox.value = '';
+        renderTable(songs);
+      }
+
+      searchBox.addEventListener('input', filterTable);
+      clearButton.addEventListener('click', clearSearchBox);
+    </script>
+  </body>
 </html>
