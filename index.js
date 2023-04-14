@@ -1,13 +1,16 @@
 const songsTable = document.querySelector('#songs-table tbody');
 const searchBox = document.querySelector('#search-box');
 const clearSearchBtn = document.querySelector('#clear-search-btn');
+const randomSongBtn = document.querySelector('#random-song-btn');
+
+let songs = [];
 
 fetch('songs.csv')
   .then(response => response.text())
   .then(data => {
     const rows = data.split('\n');
     const headers = rows[0].split(',');
-    const songs = [];
+    songs = [];
 
     for (let i = 1; i < rows.length; i++) {
       const cells = rows[i].split(',');
@@ -25,6 +28,10 @@ fetch('songs.csv')
     clearSearchBtn.addEventListener('click', () => {
       searchBox.value = '';
       renderSongs(songs);
+    });
+    randomSongBtn.addEventListener('click', () => {
+      const randomSong = songs[Math.floor(Math.random() * songs.length)];
+      alert(`คุณสุ่มได้เพลง ${randomSong['Song Name']} ของ ${randomSong['Artist']}`);
     });
   });
 
