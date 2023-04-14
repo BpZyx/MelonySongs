@@ -2,6 +2,7 @@ const songsTable = document.querySelector('#songs-table tbody');
 const searchBox = document.querySelector('#search-box');
 const clearSearchBtn = document.querySelector('#clear-search-btn');
 const randomSongBtn = document.querySelector('#random-song-btn');
+randomSongBtn.addEventListener('click', () => showRandomSongLink());
 
 let songs = [];
 
@@ -58,3 +59,13 @@ function filterSongs(songs) {
   });
   renderSongs(filteredSongs);
 }
+
+function showRandomSongLink() {
+  const songs = Array.from(document.querySelectorAll('#songs-table tbody tr'));
+  const randomIndex = Math.floor(Math.random() * songs.length);
+  const randomSong = songs[randomIndex];
+  const link = randomSong.querySelector('a').getAttribute('href');
+  const popUpWindow = window.open(link, '_blank');
+  popUpWindow.focus();
+}
+
