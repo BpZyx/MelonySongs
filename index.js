@@ -36,7 +36,7 @@ function renderSongs(songs) {
       <td>${song['Song Name']}</td>
       <td>${song['Artist']}</td>
       <td>${song['Release Date']}</td>
-      <td><a href="${song['YouTube Link']}" target="_blank">คลิกเพื่อฟัง</a></td>
+      <td><a href="${song['YouTube Link']}" target="_blank">  คลิกเพื่อฟัง</a></td>
     `;
     songsTable.appendChild(row);
   }
