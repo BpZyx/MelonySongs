@@ -70,6 +70,13 @@ body {
   background-color: #ddd;
 }
 
+#random-song-btn {
+  padding: 5px;
+  cursor: pointer;
+  background-color: white;
+  border: 1px solid #ddd;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
